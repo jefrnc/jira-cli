@@ -117,12 +117,20 @@ func (o *GlobalOptions) GetPass() string {
 				log.Warning("pass binary was not found! Fallback to default password behaviour!")
 			}
 		} else if o.PasswordSource.Value == "stdin" {
-			log.Info("Reading password from stdin.")
-			allBytes, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				panic(fmt.Sprintf("unable to read bytes from stdin: %s", err))
+
+			envPass := os.Getenv("JIRA_PASSWORD")
+            if envPass != "" {
+				log.Info("Reading password from Environment Var.")
+                o.cachedPassword = envPass
+            } else {
+
+				log.Info("Reading password from stdin.")
+				allBytes, err := ioutil.ReadAll(os.Stdin)
+				if err != nil {
+					panic(fmt.Sprintf("unable to read bytes from stdin: %s", err))
+				}
+				o.cachedPassword = string(allBytes)
 			}
-			o.cachedPassword = string(allBytes)
 		} else {
 			log.Warningf("Unknown password-source: %s", o.PasswordSource)
 		}
@@ -135,7 +143,18 @@ func (o *GlobalOptions) GetPass() string {
 
 	if o.cachedPassword = os.Getenv("JIRA_API_TOKEN"); o.cachedPassword != "" && o.AuthMethod() == "api-token" {
 		return o.cachedPassword
-	}
+	} 
+
+
+	envPass := os.Getenv("JIRA_PASSWORD")
+    if envPass != "" {
+		o.cachedPassword = envPass
+		o.SetPass(o.cachedPassword)
+		return o.cachedPassword
+	} 
+			
+
+ 
 
 	prompt := fmt.Sprintf("Jira Password [%s]: ", o.Login)
 	help := ""
