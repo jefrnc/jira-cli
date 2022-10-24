@@ -18,6 +18,4 @@ jobs:
         run: go install github.com/mitchellh/gox
       - name: make binaries
         run: make all
-      - name: perform tests
-        run: go test -v ./...
 
